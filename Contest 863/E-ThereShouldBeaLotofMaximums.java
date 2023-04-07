@@ -1,5 +1,3 @@
-
-// E - There Should Be a Lot of Maximums
 import java.util.*;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,42 +17,50 @@ public class Main {
         int[][] edges = new int[nodes - 1][2];
 
         HashMap<Integer, List<Integer>> adjList = new HashMap();
+        HashSet<Integer> index = new HashSet();
 
         for (int z = 0; z < nodes - 1; z++) {
             edges[z] = new int[] { in.nextInt(), in.nextInt() };
             adjList.computeIfAbsent(edges[z][0], v -> new ArrayList()).add(edges[z][1]);
             adjList.computeIfAbsent(edges[z][1], v -> new ArrayList()).add(edges[z][0]);
+            index.add(z);
         }
 
         HashMap<Integer, HashSet<Integer>> sameValueNodes = new HashMap();
-
+        PriorityQueue<Integer> pq = new PriorityQueue<Integer>(
+                (a, b) -> b - a);
+        boolean repeated = false;
         for (int i = 0; i < nodes; i++) {
             int val = in.nextInt();
             if (!sameValueNodes.containsKey(val)) {
                 sameValueNodes.put(val, new HashSet());
             }
             sameValueNodes.get(val).add(i + 1);
+            if (sameValueNodes.get(val).size() == 2) {
+                pq.add(val);
+            }
         }
 
         int[] out = new int[nodes - 1];
 
-        for (Map.Entry<Integer, HashSet<Integer>> entry : sameValueNodes.entrySet()) {
-            if (entry.getValue().size() < 2)
-                continue;
+        while (pq.size() > 0) {
+            int curr = pq.poll();
+            HashSet<Integer> node = sameValueNodes.get(curr);
             HashSet<String> path = new HashSet();
-            HashSet<Integer> toNodes = (HashSet<Integer>) entry.getValue().clone();
-            for (int i : entry.getValue()) {
-                toNodes.remove(i);
-                findPath(i, -1, adjList, path, toNodes);
-                toNodes.add(i);
-                break;
+            if (node.size() == 2) {
+                HashSet<Integer> toNodes = (HashSet<Integer>) node.clone();
+                for (int i : node) {
+                    toNodes.remove(i);
+                    findPath(i, -1, adjList, path, toNodes);
+                    toNodes.add(i);
+                    break;
+                }
             }
 
-            for (int i = 0; i < nodes - 1; i++) {
+            for (int i : index) {
                 if (!path.contains(edges[i][0] + "-" + edges[i][1])
                         && !path.contains(edges[i][1] + "-" + edges[i][0])) {
-                    out[i] = Math.max(entry.getKey(), out[i]);
-
+                    out[i] = Math.max(curr, out[i]);
                 }
             }
 
